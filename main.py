@@ -47,29 +47,35 @@ ICON_PATH = os.path.join(SCRIPT_PATH, 'icon.png')
 EXE_PATH = os.path.join(SCRIPT_PATH, 'main.py')
 CONFIGS, PREVIOUS_TEXT = load_config()
 
+
 class TransparentReminder(QWidget):
     def __init__(self, text, desktop_app_file):
         super().__init__()
 
         self.font_color = CONFIGS.get('font_color', [255, 0, 0])
         self.transparency = CONFIGS.get('transparency', 150)
+        self.padding = CONFIGS.get('padding', 10) # Define padding value, 10 pixels as default
 
         QGuiApplication.setDesktopFileName(desktop_app_file)
 
         self.custom_font = self.load_custom_font()
         self.label = QLabel(text, self)
-        self.label.setStyleSheet(f"color: rgba({self.font_color[0]}, {self.font_color[1]}, {self.font_color[2]}, {self.transparency}); background: transparent;")
+        # Apply padding to the QLabel using stylesheet
+        self.label.setStyleSheet(
+            f"color: rgba({self.font_color[0]}, {self.font_color[1]}, {self.font_color[2]}, {self.transparency}); "
+            f"background: transparent; padding: {self.padding}px;" # Added padding here
+        )
         self.label.setFont(self.custom_font)
         self.label.setWordWrap(True)
-        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
 
         self.position_text(text)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowTransparentForInput)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         self.adjustSize()
-        screen_geometry = QApplication.primaryScreen().geometry()
-        self.move((screen_geometry.width() - self.width()) // 2, (screen_geometry.height() - self.height()) // 2)
+        # Move the window with padding from the top-left corner
+        self.move(self.padding, self.padding)
 
         self.tray_icon = QSystemTrayIcon(QIcon(ICON_PATH), self)
         self.tray_menu = TrayMenuCustom(self.tray_icon, self.update_text, self.quit_app, self.open_config_window)
@@ -98,8 +104,8 @@ class TransparentReminder(QWidget):
         self.label.setText(new_text.strip())
         self.label.adjustSize()
         self.adjustSize()
-        screen_geometry = QApplication.primaryScreen().geometry()
-        self.move((screen_geometry.width() - self.width()) // 2, (screen_geometry.height() - self.height()) // 2)
+        # Ensure the window also moves with padding when text is updated
+        self.move(self.padding, self.padding)
 
     def load_custom_font(self):
         font_path = os.path.join(SCRIPT_PATH, "fonts", "KOMIKAX_.ttf")
@@ -117,7 +123,11 @@ class TransparentReminder(QWidget):
     def apply_config_changes(self, font_color, transparency):
         self.font_color = font_color
         self.transparency = transparency
-        self.label.setStyleSheet(f"color: rgba({self.font_color[0]}, {self.font_color[1]}, {self.font_color[2]}, {self.transparency}); background: transparent;")
+        # Reapply stylesheet with potentially new padding (if you add padding to config)
+        self.label.setStyleSheet(
+            f"color: rgba({self.font_color[0]}, {self.font_color[1]}, {self.font_color[2]}, {self.transparency}); "
+            f"background: transparent; padding: {self.padding}px;" # Ensure padding is applied here too
+        )
         self.save_config()
 
     def quit_app(self):
@@ -126,7 +136,7 @@ class TransparentReminder(QWidget):
 
     def save_config(self):
         """Save current configuration to a JSON file."""
-        config = {'font_color': self.font_color, 'transparency': self.transparency}
+        config = {'font_color': self.font_color, 'transparency': self.transparency, 'padding': self.padding}
         try:
             with open(CONFIG_FILE, 'w') as f:
                 json.dump(config, f)
