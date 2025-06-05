@@ -67,15 +67,20 @@ class TransparentReminder(QWidget):
         )
         self.label.setFont(self.custom_font)
         self.label.setWordWrap(True)
-        self.label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        # --- MODIFICATION START ---
+        self.label.setAlignment(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignRight)
+        # --- MODIFICATION END ---
 
         self.position_text(text)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowTransparentForInput)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         self.adjustSize()
-        # Move the window with padding from the top-left corner
-        self.move(self.padding, self.padding)
+        # --- MODIFICATION START ---
+        # Move the window to the bottom-right corner with padding
+        screen = QGuiApplication.primaryScreen().geometry()
+        self.move(screen.width() - self.width() - self.padding, screen.height() - self.height() - self.padding)
+        # --- MODIFICATION END ---
 
         self.tray_icon = QSystemTrayIcon(QIcon(ICON_PATH), self)
         self.tray_menu = TrayMenuCustom(self.tray_icon, self.update_text, self.quit_app, self.open_config_window)
@@ -104,8 +109,11 @@ class TransparentReminder(QWidget):
         self.label.setText(new_text.strip())
         self.label.adjustSize()
         self.adjustSize()
-        # Ensure the window also moves with padding when text is updated
-        self.move(self.padding, self.padding)
+        # --- MODIFICATION START ---
+        # Recalculate position for bottom-right when text is updated
+        screen = QGuiApplication.primaryScreen().geometry()
+        self.move(screen.width() - self.width() - self.padding, screen.height() - self.height() - self.padding)
+        # --- MODIFICATION END ---
 
     def load_custom_font(self):
         font_path = os.path.join(SCRIPT_PATH, "fonts", "KOMIKAX_.ttf")
