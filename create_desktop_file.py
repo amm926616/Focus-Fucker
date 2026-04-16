@@ -2,7 +2,7 @@ import os
 
 def create_desktop_file(icon_path, exe_path):
     """Create a .desktop file for the application."""
-    desktop_file_path = os.path.join(os.path.expanduser("~/.local/share/applications"), "FocusF*cker.desktop")
+    desktop_file_path = os.path.join(os.path.expanduser("~/.local/share/applications"), "FloatingReminder.desktop")
     
     if not os.path.exists(desktop_file_path):
         # Create the directory if it doesn't exist
@@ -10,7 +10,7 @@ def create_desktop_file(icon_path, exe_path):
 
         # Content of the .desktop file
         desktop_file_content = f"""[Desktop Entry]
-Name=FocusF*cker
+Name=Floating Reminder
 Comment=A reminder app to keep you focused
 Exec=python3 {exe_path}
 Icon= {icon_path}
@@ -29,6 +29,3 @@ Terminal=false
         print(f".desktop file already exists at {desktop_file_path}")
 
     return desktop_file_path
-
-if __name__ == "__main__":
-    create_desktop_file()
