@@ -4,7 +4,7 @@ import sys
 import webbrowser
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QAction, QColor, QFont, QFontDatabase, QGuiApplication, QIcon
+from PySide6.QtGui import QAction, QFont, QFontDatabase, QGuiApplication, QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QColorDialog,
@@ -27,7 +27,7 @@ from create_desktop_file import create_desktop_file
 
 def get_config_path():
     """Ensure the config file's directory exists and return its path."""
-    config_folder = (
+    config_folder = str(
         os.getenv("APPDATA")
         if os.name == "nt"
         else os.path.join(os.path.expanduser("~"), ".config")

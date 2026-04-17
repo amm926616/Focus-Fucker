@@ -4,13 +4,14 @@ import sys
 
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QAction, QFont, QFontDatabase, QGuiApplication, QIcon
-from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtWidgets import (
     QApplication,
     QColorDialog,
     QDialog,
     QInputDialog,
     QLabel,
+    QLineEdit,
     QMenu,
     QPushButton,
     QSlider,
@@ -24,7 +25,7 @@ from create_desktop_file import create_desktop_file
 
 def get_config_path():
     """Ensure the config file's directory exists and return its path."""
-    config_folder = (
+    config_folder = str(
         os.getenv("APPDATA")
         if os.name == "nt"
         else os.path.join(os.path.expanduser("~"), ".config")
@@ -41,7 +42,7 @@ def get_config_file(config_folder):
         default_config = {
             "font_color": [100, 255, 255],
             "transparency": 150,
-            "reminder_text": "FocusF*cker!",
+            "reminder_text": "Floating Reminder",
         }
         try:
             with open(config_file, "w") as f:
@@ -56,10 +57,10 @@ def load_config():
     try:
         with open(CONFIG_FILE, "r") as f:
             config = json.load(f)
-        return config, config.get("reminder_text", "FocusF*cker!")
+        return config, config.get("reminder_text", "Floating Reminder")
     except (IOError, json.JSONDecodeError) as e:
         print(f"Error loading configuration: {e}")
-        return {}, "FocusF*cker!"
+        return {}, "Floating Reminder"
 
 
 # Paths and Config Initialization
@@ -123,7 +124,11 @@ class TransparentReminder(QWidget):
 
         self.tray_icon = QSystemTrayIcon(QIcon(ICON_PATH), self)
         self.tray_menu = TrayMenuCustom(
-            self.tray_icon, self.update_text, self.quit_app, self.open_config_window, self.play_sound
+            self.tray_icon,
+            self.update_text,
+            self.quit_app,
+            self.open_config_window,
+            self.play_sound,
         )
 
     def play_sound(self):
@@ -141,10 +146,25 @@ class TransparentReminder(QWidget):
             self.show()
 
     def update_text(self):
-        new_text, ok = QInputDialog.getText(self, "Update Reminder", "Enter new text:")
-        if ok and new_text.strip():
-            self.position_text(new_text)
-            self.save_text(new_text)
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Update Reminder Text")
+        dialog.setMinimumWidth(400)
+
+        layout = QVBoxLayout(dialog)
+
+        input_field = QLineEdit()
+        layout.addWidget(input_field)
+
+        btn = QPushButton("OK")
+        layout.addWidget(btn)
+
+        btn.clicked.connect(dialog.accept)
+
+        if dialog.exec():
+            new_text = input_field.text()
+            if new_text.strip():
+                self.position_text(new_text)
+                self.save_text(new_text)
 
     def save_text(self, new_text):
         """Save the new text to the configuration file."""
@@ -213,7 +233,9 @@ class TransparentReminder(QWidget):
 
 
 class TrayMenuCustom:
-    def __init__(self, tray_icon, update_text, quit_app, open_config_window, play_sound):
+    def __init__(
+        self, tray_icon, update_text, quit_app, open_config_window, play_sound
+    ):
         self.tray_icon = tray_icon
         self.tray_menu = QMenu()
 
